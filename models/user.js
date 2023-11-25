@@ -7,11 +7,11 @@ const emailRegexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const userSchema = new Schema(
   {
     email: {
-        type: String,
-        match: emailRegexp,
-        required: [true, "Email is required"],
-        unique: true,
-      },
+      type: String,
+      match: emailRegexp,
+      required: [true, "Email is required"],
+      unique: true,
+    },
     password: {
       type: String,
       required: [true, "Set password for user"],
@@ -22,6 +22,10 @@ const userSchema = new Schema(
       default: "starter",
     },
     token: String,
+    avatarURL: {
+      type: String,
+      required: true,
+    },
   },
   {
     versionKey: false,
@@ -47,4 +51,9 @@ const updateSubscriptionSchema = Joi.object({
 
 const User = model("User", userSchema);
 
-module.exports = { User, registerSchema, loginSchema, updateSubscriptionSchema };
+module.exports = {
+  User,
+  registerSchema,
+  loginSchema,
+  updateSubscriptionSchema,
+};
