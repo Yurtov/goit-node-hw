@@ -95,6 +95,9 @@ const updateUserSubscription = async (req, res, next) => {
 };
 
 const updateAvatar = async (req, res, next) => {
+  if (!req.file) {
+    res.status(400).json({ message: "the file is not attached" });
+  }
   const { _id } = req.user;
   const { path: tempUpload, originalname } = req.file;
   await Jimp.read(tempUpload)
