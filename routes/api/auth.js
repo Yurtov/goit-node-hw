@@ -1,15 +1,16 @@
 const express = require("express");
 
 const authenticate = require("../../middlewars/authenticate");
-
 const {
   register,
   login,
   current,
   logout,
   updateUserSubscription,
+  updateAvatar,
 } = require("../../controllers/auth");
 const { validateBody } = require("../../middlewars/validateBody");
+const upload = require("../../middlewars/upload");
 const {
   registerSchema,
   loginSchema,
@@ -32,5 +33,7 @@ router.patch(
   validateBody(updateSubscriptionSchema),
   updateUserSubscription
 );
+
+router.patch("/avatars", authenticate, upload.single("avatar"), updateAvatar);
 
 module.exports = router;
