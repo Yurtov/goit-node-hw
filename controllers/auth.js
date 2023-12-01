@@ -4,9 +4,11 @@ const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
+const { v4: uuidv4 } = require("uuid");
 
 const { User } = require("../models/user");
 const ctrlWrapper = require("../helpers/ctrlWrapper");
+const sendMail = require("../helpers/sendMail");
 
 const { SECRET_KEY } = process.env;
 const avatarDir = path.join(__dirname, "../", "public", "avatars");
@@ -22,10 +24,20 @@ const register = async (req, res) => {
   const hashPassword = await bcrypt.hash(password, 10);
   const avatarURL = gravatar.url(email);
 
+  const verificationToken = uuidv4();
+
+  await sendMail({
+    to: email,
+    subject: "Welcome, to the Phonebook",
+    html: `<div><p>Thanks for register to the Phonebook. Before we can continue, we need to validate your email address.</p></br><p>To validate your email, clik here <a href="http://localhost:3000/api/users/verify/${verificationToken}">validate</a></p></div>`,
+    test: `Thanks for register to The Phonebook. Before we can continue, we need to validate your email address. To validate your email, open the link http://localhost:3000/api/users/verify/${verificationToken}`,
+  });
+
   const newUser = await User.create({
     ...req.body,
     password: hashPassword,
     avatarURL,
+    verificationToken,
   });
 
   res.status(201).json({
@@ -48,6 +60,12 @@ const login = async (req, res, next) => {
 
   if (!passwordCompare) {
     return res.status(401).json({ message: "Email or password is wrong" });
+  }
+
+  if (user.verify === false) {
+    return res
+      .status(401)
+      .json({ message: "Your email address is not validate" });
   }
 
   const payload = {
@@ -118,6 +136,53 @@ const updateAvatar = async (req, res, next) => {
   res.json({ avatarURL });
 };
 
+const verify = async (req, res, next) => {
+  const { verificationToken } = req.params;
+
+  const user = await User.findOne({
+    verificationToken: verificationToken,
+  }).exec();
+
+  if (user === null) {
+    next();
+  }
+
+  await User.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: null,
+  });
+
+  res.status(200).json({
+    message: "Verification successful",
+  });
+};
+
+const verifyByMail = async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email: email }).exec();
+
+  if (user === null) {
+    next();
+  }
+
+  if (user.verify === true) {
+    next(
+      res.status(400).json({ message: "Verification has already been passed" })
+    );
+  }
+
+  await sendMail({
+    to: email,
+    subject: "Welcome, to the Phonebook",
+    html: `<div><p>Thanks for register to the Phonebook. Before we can continue, we need to validate your email address.</p></br><p>To validate your email, clik here <a href="http://localhost:3000/api/users/verify/${user.verificationToken}">validate</a></p></div>`,
+    test: `Thanks for register to The Phonebook. Before we can continue, we need to validate your email address. To validate your email, open the link http://localhost:3000/api/users/verify/${user.verificationToken}`,
+  });
+
+  res.status(200).json({
+    message: "Verification email sent",
+  });
+};
+
 module.exports = {
   register: ctrlWrapper(register),
   login: ctrlWrapper(login),
@@ -125,4 +190,6 @@ module.exports = {
   logout: ctrlWrapper(logout),
   updateUserSubscription: ctrlWrapper(updateUserSubscription),
   updateAvatar: ctrlWrapper(updateAvatar),
+  verify: ctrlWrapper(verify),
+  verifyByMail: ctrlWrapper(verifyByMail),
 };

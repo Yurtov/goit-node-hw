@@ -8,6 +8,8 @@ const {
   logout,
   updateUserSubscription,
   updateAvatar,
+  verify,
+  verifyByMail
 } = require("../../controllers/auth");
 const { validateBody } = require("../../middlewars/validateBody");
 const upload = require("../../middlewars/upload");
@@ -35,5 +37,9 @@ router.patch(
 );
 
 router.patch("/avatars", authenticate, upload.single("avatar"), updateAvatar);
+
+router.get("/verify/:verificationToken", verify);
+
+router.post("/verify", verifyByMail);
 
 module.exports = router;

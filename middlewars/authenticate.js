@@ -16,6 +16,11 @@ const authenticate = async (req, res, next) => {
     if (!user || !user.token || user.token !== token) {
       next(res.status(401).json({ message: "Not authorized" }));
     }
+    if (user.verify === false) {
+      next(
+        res.status(401).json({ message: "Your email address is not validate" })
+      );
+    }
     req.user = user;
     next();
   } catch (error) {
