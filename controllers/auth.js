@@ -10,7 +10,7 @@ const { User } = require("../models/user");
 const ctrlWrapper = require("../helpers/ctrlWrapper");
 const sendMail = require("../helpers/sendMail");
 
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, BASE_URL } = process.env;
 const avatarDir = path.join(__dirname, "../", "public", "avatars");
 
 const register = async (req, res) => {
@@ -30,7 +30,7 @@ const register = async (req, res) => {
     to: email,
     subject: "Welcome, to the Phonebook",
     html: `<div><p>Thanks for register to the Phonebook. Before we can continue, we need to validate your email address.</p></br><p>To validate your email, clik here <a href="http://localhost:3000/api/users/verify/${verificationToken}">validate</a></p></div>`,
-    test: `Thanks for register to The Phonebook. Before we can continue, we need to validate your email address. To validate your email, open the link http://localhost:3000/api/users/verify/${verificationToken}`,
+    test: `Thanks for register to The Phonebook. Before we can continue, we need to validate your email address. To validate your email, open the link ${BASE_URL}/api/users/verify/${verificationToken}`,
   });
 
   const newUser = await User.create({
@@ -175,7 +175,7 @@ const verifyByMail = async (req, res, next) => {
     to: email,
     subject: "Welcome, to the Phonebook",
     html: `<div><p>Thanks for register to the Phonebook. Before we can continue, we need to validate your email address.</p></br><p>To validate your email, clik here <a href="http://localhost:3000/api/users/verify/${user.verificationToken}">validate</a></p></div>`,
-    test: `Thanks for register to The Phonebook. Before we can continue, we need to validate your email address. To validate your email, open the link http://localhost:3000/api/users/verify/${user.verificationToken}`,
+    test: `Thanks for register to The Phonebook. Before we can continue, we need to validate your email address. To validate your email, open the link ${BASE_URL}/api/users/verify/${user.verificationToken}`,
   });
 
   res.status(200).json({

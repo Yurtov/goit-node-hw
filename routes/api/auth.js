@@ -17,6 +17,7 @@ const {
   registerSchema,
   loginSchema,
   updateSubscriptionSchema,
+  emailValidateSchema
 } = require("../../models/user");
 
 const router = express.Router();
@@ -40,6 +41,6 @@ router.patch("/avatars", authenticate, upload.single("avatar"), updateAvatar);
 
 router.get("/verify/:verificationToken", verify);
 
-router.post("/verify", verifyByMail);
+router.post("/verify",validateBody(emailValidateSchema),  verifyByMail);
 
 module.exports = router;
